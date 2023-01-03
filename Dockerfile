@@ -1,4 +1,7 @@
-FROM docker/whalesay:latest
-LABEL Name=assessment Version=0.0.1
-RUN apt-get -y update && apt-get install -y fortunes
-CMD ["sh", "-c", "/usr/games/fortune -a | cowsay"]
+FROM golang:1.19-alpine
+
+# Set working directory
+WORKDIR /go/src/target
+
+# Run tests
+CMD CGO_ENABLED=0 go test -v --tags=integration ./... -cover
