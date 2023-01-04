@@ -9,7 +9,9 @@ services:
       context: .
       dockerfile: ./Dockerfile.test
     volumes:
-      - $PWD:/go/src/target
+      - .:/go/src/target
+    ports:
+      - 2565:2565  
     depends_on:
       - db
     networks:
@@ -21,6 +23,8 @@ services:
       POSTGRES_PASSWORD: root
       POSTGRES_DB: assessment
     restart: on-failure
+    ports:
+      - 5432:5432
     volumes:
       - ./db:/docker-entrypoint-initdb.d/
     networks:

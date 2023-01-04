@@ -14,7 +14,7 @@ func InitDB() {
 		log.Fatal("can't connect to database", err)
 	}
 	db = conn
-	defer db.Close()
+	//defer db.Close()
 	createExpensesTable()
 }
 

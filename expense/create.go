@@ -10,7 +10,7 @@ import (
 )
 
 func CreateHandler(c echo.Context) error {
-	expen := Expense{}
+	var expen Expense
 	err := c.Bind(&expen)
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, Err{Message: err.Error()})
