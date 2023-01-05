@@ -41,10 +41,13 @@ func setupRoute() *echo.Echo {
 	})
 
 	e.GET("/health", healthHandler)
-	//e.POST("/expenses", expense.CreateHandler)
-	g := e.Group("/api")
-	g.POST("", AuthMiddleware(expense.CreateHandler))
-	g.POST("/expenses", expense.CreateHandler)
+
+	// g := e.Group("/expenses")
+	// g.POST("", AuthMiddleware(expense.CreateHandler))
+	// g.POST("/expenses", expense.CreateHandler)
+
+	e.POST("/expenses", AuthMiddleware(expense.CreateHandler))
+	e.GET("/expenses/:id", AuthMiddleware(expense.GetByIdHandler))
 
 	return e
 }
