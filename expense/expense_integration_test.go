@@ -22,7 +22,7 @@ import (
 
 var serverPort = os.Getenv("PORT")
 
-func TestInExpense(t *testing.T) {
+func TestIntegrationExpense(t *testing.T) {
 	eh := setupServer()
 
 	t.Run("Create", func(t *testing.T) {
@@ -86,6 +86,39 @@ func TestInExpense(t *testing.T) {
 		assert.Equal(t, []string{"beverage"}, e.Tags)
 	})
 
+	t.Run("Get-All", func(t *testing.T) {
+		reqBody := `{
+			"title": "iPhone 14 Pro Max 1TB",
+			"amount": 66900,
+			"note": "birthday gift from my love",
+			"tags": ["gadget"]
+		}`
+
+		request(http.MethodPost, uri("expenses"), strings.NewReader(reqBody))
+
+		reqBody = ``
+
+		resp := request(http.MethodGet, uri("expenses"), strings.NewReader(reqBody))
+
+		var expenses []Expense
+		err := resp.Decode(&expenses)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		assert.Equal(t, 1, expenses[0].ID)
+		assert.Equal(t, "apple smoothie", expenses[0].Title)
+		assert.Equal(t, float64(89), expenses[0].Amount)
+		assert.Equal(t, "no discount", expenses[0].Note)
+		assert.Equal(t, []string{"beverage"}, expenses[0].Tags)
+
+		assert.Equal(t, 2, expenses[1].ID)
+		assert.Equal(t, "iPhone 14 Pro Max 1TB", expenses[1].Title)
+		assert.Equal(t, float64(66900), expenses[1].Amount)
+		assert.Equal(t, "birthday gift from my love", expenses[1].Note)
+		assert.Equal(t, []string{"gadget"}, expenses[1].Tags)
+	})
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	err := eh.Shutdown(ctx)
@@ -134,6 +167,7 @@ func setupServer() *echo.Echo {
 		e.POST("/expenses", CreateHandler)
 		e.GET("/expenses/:id", GetByIdHandler)
 		e.PUT("/expenses/:id", UpdateByIdHandler)
+		e.GET("/expenses", GetAllHandler)
 		e.Start(serverPort)
 	}(eh)
 	for {
