@@ -1,8 +1,6 @@
 package expense
 
 import (
-	"fmt"
-	_ "fmt"
 	"net/http"
 	"strconv"
 
@@ -28,7 +26,7 @@ func UpdateByIdHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
 	}
 
-	fmt.Printf("updateById : % #v\n", expen)
+	//fmt.Printf("updateById : % #v\n", expen)
 
 	return c.JSON(http.StatusOK, expen)
 
