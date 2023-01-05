@@ -45,7 +45,7 @@ func TestUnitUpdateById(t *testing.T) {
 		rows := sqlmock.NewRows([]string{"id", "title", "amount", "note", "tags"}).
 			AddRow(1, "apple smoothie", 89, "no discount", pq.Array([]string{"beverage"}))
 
-		mock.ExpectQuery("UPDATE expenses SET (.+) WHERE (.+)").WithArgs("apple smoothie", 89.00, "no discount", pq.Array([]string{"beverage"}), 1).WillReturnRows(rows)
+		mock.ExpectQuery("UPDATE expenses SET (.+) WHERE (.+)").WithArgs("apple smoothie", float64(89), "no discount", pq.Array([]string{"beverage"}), 1).WillReturnRows(rows)
 
 		if err = UpdateByIdHandler(c); err != nil {
 			t.Errorf("error was not expected while updating stats: %s", err)
@@ -58,7 +58,7 @@ func TestUnitUpdateById(t *testing.T) {
 		json.NewDecoder(resp.Body).Decode(&expen)
 		assert.Equal(t, 1, expen.ID)
 		assert.Equal(t, "apple smoothie", expen.Title)
-		assert.Equal(t, 89.0, expen.Amount)
+		assert.Equal(t, float64(89), expen.Amount)
 		assert.Equal(t, "no discount", expen.Note)
 		assert.Equal(t, []string{"beverage"}, expen.Tags)
 
