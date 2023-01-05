@@ -26,29 +26,31 @@ func TestCreateHandler(t *testing.T) {
 
 	eh := setupServer()
 
-	reqBody := `{
-		"title": "strawberry smoothie",
-		"amount": 79,
-		"note": "night market promotion discount 10 bath",
-		"tags": ["food","beverage"]
-	}`
+	t.Run("Create", func(t *testing.T) {
+		reqBody := `{
+			"title": "strawberry smoothie",
+			"amount": 79,
+			"note": "night market promotion discount 10 bath",
+			"tags": ["food","beverage"]
+		}`
 
-	resp := request(http.MethodPost, uri("expenses"), strings.NewReader(reqBody))
+		resp := request(http.MethodPost, uri("expenses"), strings.NewReader(reqBody))
 
-	var e Expense
-	err := resp.Decode(&e)
+		var e Expense
+		err := resp.Decode(&e)
 
-	assert.Nil(t, err)
-	assert.Equal(t, http.StatusCreated, resp.StatusCode)
-	assert.NotEqual(t, 0, e.ID)
-	assert.Equal(t, "strawberry smoothie", e.Title)
-	assert.Equal(t, 79.0, e.Amount)
-	assert.Equal(t, "night market promotion discount 10 bath", e.Note)
-	assert.Equal(t, []string{"food", "beverage"}, e.Tags)
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusCreated, resp.StatusCode)
+		assert.NotEqual(t, 0, e.ID)
+		assert.Equal(t, "strawberry smoothie", e.Title)
+		assert.Equal(t, 79.0, e.Amount)
+		assert.Equal(t, "night market promotion discount 10 bath", e.Note)
+		assert.Equal(t, []string{"food", "beverage"}, e.Tags)
+	})
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	err = eh.Shutdown(ctx)
+	err := eh.Shutdown(ctx)
 	assert.NoError(t, err)
 
 }
@@ -89,7 +91,6 @@ func (r *Response) Decode(v interface{}) error {
 }
 
 func setupServer() *echo.Echo {
-	//serverPort := ":2565"
 	eh := echo.New()
 	go func(e *echo.Echo) {
 		InitDB()

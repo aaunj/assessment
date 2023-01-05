@@ -1,8 +1,6 @@
 package expense
 
 import (
-	"database/sql"
-	"fmt"
 	"net/http"
 
 	"github.com/labstack/echo/v4"
@@ -16,17 +14,19 @@ func CreateHandler(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, Err{Message: err.Error()})
 	}
 
-	err = queryRow(db, &expen)
+	row := db.QueryRow("INSERT INTO expenses (title, amount, note, tags) VALUES($1, $2, $3, $4) RETURNING id;",
+		expen.Title, expen.Amount, expen.Note, pq.Array(expen.Tags))
+	err = row.Scan(&expen.ID)
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
 	}
 
-	fmt.Printf("id : % #v\n", expen)
+	//fmt.Printf("Create : % #v\n", expen)
 
 	return c.JSON(http.StatusCreated, expen)
 }
 
-func queryRow(db *sql.DB, expen *Expense) error {
-	row := db.QueryRow("INSERT INTO expenses (title, amount, note, tags) VALUES($1, $2, $3, $4) RETURNING id;", expen.Title, expen.Amount, expen.Note, pq.Array(expen.Tags))
-	return row.Scan(&expen.ID)
-}
+// func queryRow(db *sql.DB, expen *Expense) error {
+// 	row := db.QueryRow("INSERT INTO expenses (title, amount, note, tags) VALUES($1, $2, $3, $4) RETURNING id;", expen.Title, expen.Amount, expen.Note, pq.Array(expen.Tags))
+// 	return row.Scan(&expen.ID)
+// }
