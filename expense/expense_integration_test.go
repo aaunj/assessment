@@ -5,14 +5,13 @@ package expense
 
 import (
 	"context"
-	_ "database/sql"
 	"encoding/json"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"net"
 	"net/http"
+	"os"
 	"strings"
 	"testing"
 	"time"
@@ -21,96 +20,41 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-const serverPort = 2565
+var serverPort = os.Getenv("PORT")
 
 func TestCreateHandler(t *testing.T) {
 
-	// Setup server
-	eh := echo.New()
-	go func(e *echo.Echo) {
-		// conn, err := sql.Open("postgres", "postgresql://root:root@db/assessment?sslmode=disable")
-		// if err != nil {
-		// 	log.Fatal("can't connect to database", err)
-		// }
-		// db = conn
-		InitDB()
+	eh := setupServer()
 
-		e.POST("/expenses", CreateHandler)
-		e.Start(fmt.Sprintf(":%d", serverPort))
-	}(eh)
-	for {
-		conn, err := net.DialTimeout("tcp", fmt.Sprintf("localhost:%d", serverPort), 30*time.Second)
-		if err != nil {
-			log.Println(err)
-		}
-		if conn != nil {
-			conn.Close()
-			break
-		}
-
-	}
-	// Arrange
 	reqBody := `{
 		"title": "strawberry smoothie",
 		"amount": 79,
 		"note": "night market promotion discount 10 bath",
 		"tags": ["food","beverage"]
 	}`
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("http://localhost:%d/expenses", serverPort), strings.NewReader(reqBody))
-	assert.NoError(t, err)
-	req.Header.Set(echo.HeaderContentType, echo.MIMEApplicationJSON)
-	client := http.Client{}
 
-	// // Act
-	resp, err := client.Do(req)
-	assert.NoError(t, err)
+	resp := request(http.MethodPost, uri("expenses"), strings.NewReader(reqBody))
 
-	byteBody, err := ioutil.ReadAll(resp.Body)
-	assert.NoError(t, err)
-	resp.Body.Close()
+	var e Expense
+	err := resp.Decode(&e)
 
-	// // Assertions
-	expected := "{\"id\":1,\"title\":\"strawberry smoothie\",\"amount\":79,\"note\":\"night market promotion discount 10 bath\",\"tags\":[\"food\",\"beverage\"]}"
-
-	if assert.NoError(t, err) {
-		assert.Equal(t, http.StatusCreated, resp.StatusCode)
-		assert.Equal(t, expected, strings.TrimSpace(string(byteBody)))
-	}
+	assert.Nil(t, err)
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.NotEqual(t, 0, e.ID)
+	assert.Equal(t, "strawberry smoothie", e.Title)
+	assert.Equal(t, 79.0, e.Amount)
+	assert.Equal(t, "night market promotion discount 10 bath", e.Note)
+	assert.Equal(t, []string{"food", "beverage"}, e.Tags)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	err = eh.Shutdown(ctx)
 	assert.NoError(t, err)
 
-	// eh := setupServer()
-
-	// reqBody := bytes.NewBufferString(`{
-	// 	"title": "strawberry smoothie",
-	// 	"amount": 79,
-	// 	"note": "night market promotion discount 10 bath",
-	// 	"tags": ["food", "beverage"]
-	// }`)
-	// var e Expense
-
-	// res := request(http.MethodPost, uri("expenses"), reqBody)
-	// err := res.Decode(&e)
-
-	// //assert.Nil(t, err)
-	// assert.Equal(t, http.StatusCreated, res.StatusCode)
-	// //assert.NotEqual(t, 0, e.ID)
-	// assert.Equal(t, "strawberry smoothie", e.Title)
-	// //assert.Equal(t, 79.0, e.Amount)
-	// //assert.Equal(t, "night market promotion discount 10 bath", e.Note)
-	// //assert.Equal(t, []string{"food", "beverage"}, e.Tags)
-
-	// ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-	// defer cancel()
-	// err = eh.Shutdown(ctx)
-	// assert.NoError(t, err)
 }
 
 func uri(paths ...string) string {
-	host := "http://localhost" + ":2565"
+	host := "http://localhost" + serverPort
 	if paths == nil {
 		return host
 	}
@@ -145,7 +89,7 @@ func (r *Response) Decode(v interface{}) error {
 }
 
 func setupServer() *echo.Echo {
-	serverPort := ":2565"
+	//serverPort := ":2565"
 	eh := echo.New()
 	go func(e *echo.Echo) {
 		InitDB()
