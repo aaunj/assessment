@@ -1,7 +1,6 @@
 package expense
 
 import (
-	"database/sql"
 	"fmt"
 	"net/http"
 	"strconv"
@@ -12,9 +11,11 @@ import (
 
 func GetByIdHandler(c echo.Context) error {
 	var expen Expense
-	expen.ID, _ = strconv.Atoi(c.Param("id"))
+	id, _ := strconv.Atoi(c.Param("id"))
 
-	err := getByID(db, &expen)
+	row := db.QueryRow("SELECT * FROM expenses WHERE id=$1", id)
+	err := row.Scan(&expen.ID, &expen.Title, &expen.Amount, &expen.Note, pq.Array(&expen.Tags))
+
 	if err != nil {
 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
 	}
@@ -23,9 +24,4 @@ func GetByIdHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, expen)
 
-}
-
-func getByID(db *sql.DB, expen *Expense) error {
-	row := db.QueryRow("SELECT * FROM expenses WHERE id=$1", expen.ID)
-	return row.Scan(&expen.ID, &expen.Title, &expen.Amount, &expen.Note, pq.Array(&expen.Tags))
 }
