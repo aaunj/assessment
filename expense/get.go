@@ -24,3 +24,26 @@ func GetByIdHandler(c echo.Context) error {
 	return c.JSON(http.StatusOK, expen)
 
 }
+
+func GetAllHandler(c echo.Context) error {
+	var expenses []Expense
+
+	rows, err := db.Query("SELECT * FROM expenses")
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var expen Expense
+		err := rows.Scan(&expen.ID, &expen.Title, &expen.Amount, &expen.Note, pq.Array(&expen.Tags))
+		if err != nil {
+			return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
+		}
+		expenses = append(expenses, expen)
+	}
+
+	//fmt.Printf("all : % #v\n", expenses)
+
+	return c.JSON(http.StatusOK, expenses)
+
+}
