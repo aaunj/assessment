@@ -25,8 +25,3 @@ func CreateHandler(c echo.Context) error {
 
 	return c.JSON(http.StatusCreated, expen)
 }
-
-// func queryRow(db *sql.DB, expen *Expense) error {
-// 	row := db.QueryRow("INSERT INTO expenses (title, amount, note, tags) VALUES($1, $2, $3, $4) RETURNING id;", expen.Title, expen.Amount, expen.Note, pq.Array(expen.Tags))
-// 	return row.Scan(&expen.ID)
-// }
