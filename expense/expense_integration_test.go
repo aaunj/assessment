@@ -64,66 +64,33 @@ func TestInExpense(t *testing.T) {
 		assert.Equal(t, []string{"food", "beverage"}, e.Tags)
 	})
 
+	t.Run("Update-By-Id", func(t *testing.T) {
+		reqBody := `{
+			"title": "apple smoothie",
+			"amount": 89,
+			"note": "no discount",
+			"tags": ["beverage"]
+		}`
+
+		resp := request(http.MethodPut, uri("expenses/1"), strings.NewReader(reqBody))
+
+		var e Expense
+		err := resp.Decode(&e)
+
+		assert.Nil(t, err)
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+		assert.Equal(t, 1, e.ID)
+		assert.Equal(t, "apple smoothie", e.Title)
+		assert.Equal(t, float64(89), e.Amount)
+		assert.Equal(t, "no discount", e.Note)
+		assert.Equal(t, []string{"beverage"}, e.Tags)
+	})
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	err := eh.Shutdown(ctx)
 	assert.NoError(t, err)
 }
-
-// func TestInCreate(t *testing.T) {
-
-// 	eh := setupServer()
-
-// 	reqBody := `{
-// 		"title": "strawberry smoothie",
-// 		"amount": 79,
-// 		"note": "night market promotion discount 10 bath",
-// 		"tags": ["food","beverage"]
-// 	}`
-
-// 	resp := request(http.MethodPost, uri("expenses"), strings.NewReader(reqBody))
-
-// 	var e Expense
-// 	err := resp.Decode(&e)
-
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
-// 	assert.NotEqual(t, 0, e.ID)
-// 	assert.Equal(t, "strawberry smoothie", e.Title)
-// 	assert.Equal(t, 79.0, e.Amount)
-// 	assert.Equal(t, "night market promotion discount 10 bath", e.Note)
-// 	assert.Equal(t, []string{"food", "beverage"}, e.Tags)
-
-// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-// 	defer cancel()
-// 	err = eh.Shutdown(ctx)
-// 	assert.NoError(t, err)
-
-// }
-
-// func TestInGetById(t *testing.T) {
-// 	eh := setupServer()
-// 	reqBody := ``
-
-// 	resp := request(http.MethodGet, uri("expenses/1"), strings.NewReader(reqBody))
-
-// 	var e Expense
-// 	err := resp.Decode(&e)
-
-// 	assert.Nil(t, err)
-// 	assert.Equal(t, http.StatusOK, resp.StatusCode)
-// 	assert.Equal(t, 1, e.ID)
-// 	assert.Equal(t, "strawberry smoothie", e.Title)
-// 	assert.Equal(t, float64(79), e.Amount)
-// 	assert.Equal(t, "night market promotion discount 10 bath", e.Note)
-// 	assert.Equal(t, []string{"food", "beverage"}, e.Tags)
-
-// 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-// 	defer cancel()
-// 	err = eh.Shutdown(ctx)
-// 	assert.NoError(t, err)
-
-// }
 
 func uri(paths ...string) string {
 	host := "http://localhost" + serverPort
@@ -166,6 +133,7 @@ func setupServer() *echo.Echo {
 		InitDB()
 		e.POST("/expenses", CreateHandler)
 		e.GET("/expenses/:id", GetByIdHandler)
+		e.PUT("/expenses/:id", UpdateByIdHandler)
 		e.Start(serverPort)
 	}(eh)
 	for {
