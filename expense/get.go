@@ -1,7 +1,6 @@
 package expense
 
 import (
-	"fmt"
 	"net/http"
 	"strconv"
 
@@ -20,7 +19,7 @@ func GetByIdHandler(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, Err{Message: err.Error()})
 	}
 
-	fmt.Printf("data : % #v\n", expen)
+	//fmt.Printf("data : % #v\n", expen)
 
 	return c.JSON(http.StatusOK, expen)
 
