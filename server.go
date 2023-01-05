@@ -48,6 +48,7 @@ func setupRoute() *echo.Echo {
 
 	e.POST("/expenses", AuthMiddleware(expense.CreateHandler))
 	e.GET("/expenses/:id", AuthMiddleware(expense.GetByIdHandler))
+	e.PUT("/expenses/:id", AuthMiddleware(expense.UpdateByIdHandler))
 
 	return e
 }
