@@ -1,0 +1,39 @@
+version: '3.8'
+
+networks:
+  assessment:
+
+services: 
+  db:
+    image: postgres:12.13-alpine
+    #restart: always
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=root
+      - POSTGRES_DB=assessment
+    ports:
+      - '5432:5432'
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d/
+    networks:
+      - assessment 
+  api:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    environment:
+      - CGO_ENABLED=0
+      - PORT=:2565
+      - DATABASE_URL=postgresql://root:root@db/assessment?sslmode=disable
+    links:
+      - db
+    #restart: always
+    ports:
+      - 2565:2565
+    depends_on:
+      - db
+    networks:
+      - assessment
+  
+  
+    
